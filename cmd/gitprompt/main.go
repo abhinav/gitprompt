@@ -83,7 +83,7 @@ func run() error {
 	}
 
 	switch {
-	case s.Changed > 0, s.Conflicts > 0, s.Staged > 0:
+	case s.Changed > 0, s.Conflicts > 0, s.Staged > 0, s.Untracked > 0:
 	default:
 		cleanColor.Printf("✔")
 	}
