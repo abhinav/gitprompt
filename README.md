@@ -10,6 +10,20 @@ information about a git repository. The behavior of `gitprompt` is inspired by
 Installation
 ============
 
+Binaries
+--------
+
+Pre-built 64-bit binaries are available for Linux and Mac at
+<https://github.com/abhinav/gitprompt/releases>. To install, simply unpack the
+archive and put the binaries somewhere on your `$PATH`.
+
+For example, if you have `$HOME/bin` on your `$PATH`,
+
+    OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+    VERSION=v0.1.0
+    URL="https://github.com/abhinav/gitprompt/releases/download/$VERSION/gitprompt.$VERSION.$OS.amd64.tar.gz"
+    curl -L "$URL" | tar xv -C ~/bin
+
 Build From Source
 -----------------
 
