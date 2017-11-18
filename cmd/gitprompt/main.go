@@ -6,9 +6,9 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 
+	"github.com/abhinav/gitprompt"
 	"github.com/fatih/color"
 )
 
@@ -41,10 +41,10 @@ func run() error {
 		return fmt.Errorf("failed to start git %v: %v", cmd.Args, err)
 	}
 
-	var s status
+	var s Status
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
-		if err := s.Feed(scanner.Text()); err != nil {
+		if err := s.feed(scanner.Text()); err != nil {
 			return fmt.Errorf("failed to parse output of git status: %v", err)
 		}
 	}
@@ -92,8 +92,10 @@ func run() error {
 	return nil
 }
 
-type status struct {
-	Branch    string
+// Status holds the information about the worktree necessary to build the
+// prompt.
+type Status struct {
+	Branch    string // empty if not on a branch
 	Ahead     int64
 	Behind    int64
 	Staged    int64
@@ -102,22 +104,45 @@ type status struct {
 	Untracked int64
 }
 
-func (s *status) Feed(line string) error {
-	xy := line[:2]
+// Feeds a line of `git status --porcelain --branch` to Status.
+func (s *Status) feed(line string) error {
+	if line[:2] == "##" {
+		branch, err := gitprompt.ReadBranch(line)
+		if err != nil {
+			return fmt.Errorf("cannot read branch information from %q: %v", line, err)
+		}
 
-	switch line[:2] {
-	case "##":
-		return s.feedBranchInfo(strings.TrimSpace(line[2:]))
-	case "??":
+		if branch.Name != "" {
+			s.Branch = branch.Name
+			s.Ahead = branch.Ahead
+			s.Behind = branch.Behind
+			return nil
+		} else {
+			var err error
+			s.Branch, err = getTagNameOrHash()
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	f, err := gitprompt.ReadFileStatus(line)
+	if err != nil {
+		return fmt.Errorf("cannot read file status from %q: %v", line, err)
+	}
+
+	if f.Untracked() {
 		s.Untracked++
 		return nil
 	}
 
 	// Index status
-	switch xy[0] {
-	case 'U':
+	switch f.Index {
+	case gitprompt.UpdatedButUnmerged:
 		s.Conflicts++
-	case ' ':
+	case gitprompt.Unmodified:
 		// Ignore files unchanged in index.
 	default:
 		// Everything else has been staged.
@@ -125,82 +150,8 @@ func (s *status) Feed(line string) error {
 	}
 
 	// Files modified in working tree.
-	if xy[1] == 'M' {
+	if f.WorkTree == gitprompt.Modified {
 		s.Changed++
-	}
-
-	return nil
-}
-
-const (
-	_initialCommit = "Initial commit on"
-	_noCommitsYet  = "No commits yet on"
-	_noBranch      = "no branch"
-	_ahead         = "ahead"
-	_behind        = "behind"
-	_tag           = "tag: "
-)
-
-func (s *status) feedBranchInfo(l string) error {
-	// We get things like,
-	//
-	//  ## master
-	//  ## master...origin/master
-	//  ## master...origin/master [ahead 3]
-	//  ## master...origin/master [behind 4]
-	//  ## master...origin/master [ahead 3, behind 4]
-
-	switch {
-	case strings.Contains(l, _initialCommit) || strings.Contains(l, _noCommitsYet):
-		if i := strings.LastIndexByte(l, ' '); i >= 0 {
-			s.Branch = l[i+1:]
-			return nil
-		}
-		return fmt.Errorf("could not get branch name from %q", l)
-	case strings.Contains(l, _noBranch):
-		var err error
-		s.Branch, err = getTagNameOrHash()
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if i := strings.Index(l, "..."); i >= 0 {
-		s.Branch = l[:i]
-		l = l[i:]
-	} else {
-		s.Branch = l
-		return nil
-	}
-
-	if i := strings.IndexByte(l, ' '); i >= 0 {
-		l = l[i+1:]
-	} else {
-		return nil
-	}
-
-	// Drop surround [, ]
-	l = l[1 : len(l)-1]
-	for _, d := range strings.SplitN(l, ", ", 2) {
-		var err error
-
-		if i := strings.Index(d, _ahead); i >= 0 {
-			i += len(_ahead) + 1
-			s.Ahead, err = strconv.ParseInt(d[i:], 10, 32)
-			if err != nil {
-				return fmt.Errorf("failed to parse ahead divergence: %v", err)
-			}
-			continue
-		}
-
-		if i := strings.Index(d, _behind); i >= 0 {
-			i += len(_behind) + 1
-			s.Behind, err = strconv.ParseInt(d[i:], 10, 32)
-			if err != nil {
-				return fmt.Errorf("failed to parse behind divergence: %v", err)
-			}
-		}
 	}
 
 	return nil
@@ -214,23 +165,13 @@ func getTagNameOrHash() (string, error) {
 		return "", fmt.Errorf("failed to run git log: %v", err)
 	}
 	out := strings.TrimSpace(string(b))
-
-	var hash string
-	if i := strings.IndexByte(out, ' '); i >= 0 {
-		hash = out[:i]
-	} else {
-		return "", fmt.Errorf("could not read hash from %q", out)
+	c, err := gitprompt.ReadCommit(out)
+	if err != nil {
+		return "", fmt.Errorf("failed to read commit information from %q: %v", out, err)
 	}
 
-	if i := strings.Index(out, _tag); i >= 0 {
-		out = out[i+len(_tag):]
-	} else {
-		return hash, nil
+	if len(c.Tags) > 0 {
+		return "tags/" + c.Tags[0], nil
 	}
-
-	if i := strings.IndexAny(out, " ,)"); i >= 0 {
-		return "tags/" + out[:i], nil
-	}
-
-	return "", fmt.Errorf("failed to parse tag name from %q", string(b))
+	return ":" + c.ShortID, nil
 }
