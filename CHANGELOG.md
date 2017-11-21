@@ -4,7 +4,7 @@ Releases
 v0.2.0 (2017-11-21)
 -------------------
 
--   Commit SHas are now prefixed with ":".
+-   Commit SHAs are now prefixed with ":".
 -   Don't complain outside git repositories.
 
 
