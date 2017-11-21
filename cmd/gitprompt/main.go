@@ -30,7 +30,6 @@ var (
 
 func run() error {
 	cmd := exec.Command("git", "status", "--porcelain", "--branch")
-	cmd.Stderr = os.Stderr
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -117,12 +116,11 @@ func (s *Status) feed(line string) error {
 			s.Ahead = branch.Ahead
 			s.Behind = branch.Behind
 			return nil
-		} else {
-			var err error
-			s.Branch, err = getTagNameOrHash()
-			if err != nil {
-				return err
-			}
+		}
+
+		s.Branch, err = getTagNameOrHash()
+		if err != nil {
+			return err
 		}
 
 		return nil

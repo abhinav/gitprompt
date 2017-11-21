@@ -5,6 +5,7 @@ v0.2.0 (unreleased)
 -------------------
 
 -   Commit SHas are now prefixed with ":".
+-   Don't complain outside git repositories.
 
 
 v0.1.1 (2017-10-29)
