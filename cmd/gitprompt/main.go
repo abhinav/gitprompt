@@ -2,11 +2,14 @@ package main
 
 import (
 	"bufio"
+	"context"
+	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/abhinav/gitprompt"
 	"github.com/fatih/color"
@@ -15,7 +18,7 @@ import (
 func main() {
 	color.NoColor = false
 	log.SetFlags(0)
-	if err := run(); err != nil {
+	if err := run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -28,8 +31,23 @@ var (
 	cleanColor    = color.New(color.FgGreen)
 )
 
-func run() error {
-	cmd := exec.Command("git", "status", "--porcelain", "--branch")
+func run(args []string) error {
+	var timeout time.Duration
+	flag := flag.NewFlagSet("gitprompt", flag.ContinueOnError)
+	flag.DurationVar(&timeout, "timeout", 0,
+		"amount of time the 'git status' command is allowed to take; unlimited if 0")
+	if err := flag.Parse(args); err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+	if timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, timeout)
+		defer cancel()
+	}
+
+	cmd := exec.CommandContext(ctx, "git", "status", "--porcelain", "--branch")
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -52,8 +70,18 @@ func run() error {
 		return fmt.Errorf("failed to read output: %v", err)
 	}
 
-	if err := cmd.Wait(); err != nil {
-		return nil // not a git repo
+	cmdDone := make(chan error, 1)
+	go func() { cmdDone <- cmd.Wait() }()
+
+	err = nil
+	select {
+	case <-ctx.Done(): // took too long
+		fmt.Print("(big repo)")
+		return nil
+	case err = <-cmdDone:
+		if err != nil {
+			return nil // not a git repo
+		}
 	}
 
 	fmt.Printf("(%v", branchColor.Sprint(s.Branch))

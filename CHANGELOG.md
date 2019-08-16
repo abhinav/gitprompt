@@ -1,6 +1,12 @@
 Releases
 ========
 
+v0.3.0 (unreleased)
+-------------------
+
+-   Add a `-timeout` flag to exit early if the repository is too large.
+
+
 v0.2.0 (2017-11-21)
 -------------------
 

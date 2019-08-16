@@ -1,4 +1,0 @@
-package: github.com/abhinav/gitprompt
-import:
-- package: github.com/fatih/color
-  version: ^1
