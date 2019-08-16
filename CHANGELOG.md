@@ -1,6 +1,12 @@
 Releases
 ========
 
+v0.3.1 (2019-08-16)
+-------------------
+
+-   Don't SIGKILL on `-timeout`. That leaves dirty the index locked.
+
+
 v0.3.0 (2019-08-16)
 -------------------
 

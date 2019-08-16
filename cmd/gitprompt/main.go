@@ -47,7 +47,7 @@ func run(args []string) error {
 		defer cancel()
 	}
 
-	cmd := exec.CommandContext(ctx, "git", "status", "--porcelain", "--branch")
+	cmd := exec.Command("git", "status", "--porcelain", "--branch")
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -76,8 +76,7 @@ func run(args []string) error {
 	err = nil
 	select {
 	case <-ctx.Done(): // took too long
-		fmt.Print("(big repo)")
-		return nil
+		return cmd.Process.Signal(os.Interrupt)
 	case err = <-cmdDone:
 		if err != nil {
 			return nil // not a git repo
