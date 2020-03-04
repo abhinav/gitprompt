@@ -32,10 +32,18 @@ var (
 )
 
 func run(args []string) error {
-	var timeout time.Duration
+	var (
+		timeout  time.Duration
+		noStatus bool
+	)
+
 	flag := flag.NewFlagSet("gitprompt", flag.ContinueOnError)
 	flag.DurationVar(&timeout, "timeout", 0,
 		"amount of time the 'git status' command is allowed to take; unlimited if 0")
+
+	flag.BoolVar(&noStatus, "no-git-status", os.Getenv("GITPROMPT_NO_GIT_STATUS") == "1",
+		"display only branch, tags or hash without calling git status (default: $GITPROMPT_NO_GIT_STATUS)")
+
 	if err := flag.Parse(args); err != nil {
 		return err
 	}
@@ -47,43 +55,29 @@ func run(args []string) error {
 		defer cancel()
 	}
 
-	cmd := exec.Command("git", "status", "--porcelain", "--branch")
-
-	stdout, err := cmd.StdoutPipe()
+	var (
+		s   *Status
+		err error
+	)
+	if !noStatus {
+		s, err = gitStatus(ctx)
+	} else {
+		s, err = gitLog(ctx)
+	}
 	if err != nil {
-		return fmt.Errorf("failed to open stdout pipe to git: %v", err)
+		return err
 	}
-
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("failed to start git %v: %v", cmd.Args, err)
-	}
-
-	var s Status
-	scanner := bufio.NewScanner(stdout)
-	for scanner.Scan() {
-		if err := s.feed(scanner.Text()); err != nil {
-			return fmt.Errorf("failed to parse output of git status: %v", err)
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("failed to read output: %v", err)
-	}
-
-	cmdDone := make(chan error, 1)
-	go func() { cmdDone <- cmd.Wait() }()
-
-	err = nil
-	select {
-	case <-ctx.Done(): // took too long
-		return cmd.Process.Signal(os.Interrupt)
-	case err = <-cmdDone:
-		if err != nil {
-			return nil // not a git repo
-		}
+	if s == nil {
+		return nil // not a git repo
 	}
 
 	fmt.Printf("(%v", branchColor.Sprint(s.Branch))
+	defer fmt.Print(")")
+
+	if s.BranchOnly {
+		return nil
+	}
+
 	if s.Behind > 0 {
 		fmt.Printf("↓%d", s.Behind)
 	}
@@ -114,14 +108,76 @@ func run(args []string) error {
 		cleanColor.Printf("✔")
 	}
 
-	fmt.Print(")")
 	return nil
+}
+
+func gitStatus(ctx context.Context) (*Status, error) {
+	cmd := exec.CommandContext(ctx, "git", "status", "--porcelain", "--branch")
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, fmt.Errorf("open stdout pipe to git: %v", err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("start git %v: %v", cmd.Args, err)
+	}
+
+	var s Status
+	scanner := bufio.NewScanner(stdout)
+	for scanner.Scan() {
+		if err := s.feed(ctx, scanner.Text()); err != nil {
+			return nil, fmt.Errorf("parse output of git status: %v", err)
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("read output: %v", err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		if err != context.DeadlineExceeded {
+			err = nil // not a git repo
+		}
+		return nil, err
+	}
+
+	return &s, nil
+}
+
+func gitLog(ctx context.Context) (*Status, error) {
+	cmd := exec.CommandContext(ctx, "git", "log", "-1", `--format=%h%d`)
+	cmd.Stderr = os.Stderr
+	b, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("run git log: %v", err)
+	}
+
+	out := strings.TrimSpace(string(b))
+	c, err := gitprompt.ReadCommit(out)
+	if err != nil {
+		return nil, fmt.Errorf("read commit information from %q: %v", out, err)
+	}
+
+	s := Status{BranchOnly: true}
+	switch {
+	case len(c.Branch) > 0:
+		s.Branch = c.Branch
+	case len(c.Tags) > 0:
+		s.Branch = "tags/" + c.Tags[0]
+	default:
+		s.Branch = c.ShortID
+	}
+
+	return &s, nil
 }
 
 // Status holds the information about the worktree necessary to build the
 // prompt.
 type Status struct {
-	Branch    string // empty if not on a branch
+	Branch     string // empty if not on a branch
+	BranchOnly bool
+
 	Ahead     int64
 	Behind    int64
 	Staged    int64
@@ -131,7 +187,7 @@ type Status struct {
 }
 
 // Feeds a line of `git status --porcelain --branch` to Status.
-func (s *Status) feed(line string) error {
+func (s *Status) feed(ctx context.Context, line string) error {
 	if line[:2] == "##" {
 		branch, err := gitprompt.ReadBranch(line)
 		if err != nil {
@@ -145,7 +201,7 @@ func (s *Status) feed(line string) error {
 			return nil
 		}
 
-		s.Branch, err = getTagNameOrHash()
+		s.Branch, err = getTagNameOrHash(ctx)
 		if err != nil {
 			return err
 		}
@@ -182,8 +238,8 @@ func (s *Status) feed(line string) error {
 	return nil
 }
 
-func getTagNameOrHash() (string, error) {
-	cmd := exec.Command("git", "log", "-1", `--format=%h%d`)
+func getTagNameOrHash(ctx context.Context) (string, error) {
+	cmd := exec.CommandContext(ctx, "git", "log", "-1", `--format=%h%d`)
 	cmd.Stderr = os.Stderr
 	b, err := cmd.Output()
 	if err != nil {
