@@ -1,7 +1,7 @@
 Releases
 ========
 
-v0.4.0 (unreleased)
+v0.4.0 (2020-03-04)
 -------------------
 
 -   Add `-no-git-status` flag that reports the branch, tag, or hash only. This
