@@ -1,7 +1,7 @@
 Releases
 ========
 
-v0.5.0 (unreleased)
+v0.5.0 (2020-04-30)
 -------------------
 
 -   **Breaking**: Either `zsh` or `bash` must be specified as a positional

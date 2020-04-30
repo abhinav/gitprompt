@@ -19,7 +19,7 @@ For example, if you have `$HOME/bin` on your `$PATH`,
 
     OS=$(go env GOOS)
     ARCH=$(go env GOARCH)
-    VERSION=v0.4.0
+    VERSION=v0.5.0
     URL="https://github.com/abhinav/gitprompt/releases/download/$VERSION/gitprompt.$VERSION.$OS.$ARCH.tar.gz"
     curl -L "$URL" | tar xzv -C ~/bin
 
