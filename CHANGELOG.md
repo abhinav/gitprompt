@@ -1,6 +1,14 @@
 Releases
 ========
 
+v0.5.0 (unreleased)
+-------------------
+
+-   **Breaking**: Either `zsh` or `bash` must be specified as a positional
+    argument to `gitprompt`.
+-   Escape zero-width characters so that tab completion behaves properly.
+
+
 v0.4.0 (2020-03-04)
 -------------------
 
