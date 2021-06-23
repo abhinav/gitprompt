@@ -19,7 +19,7 @@ For example, if you have `$HOME/bin` on your `$PATH`,
 
     OS=$(go env GOOS)
     ARCH=$(go env GOARCH)
-    VERSION=v0.5.0
+    VERSION=v0.6.0
     URL="https://github.com/abhinav/gitprompt/releases/download/$VERSION/gitprompt.$VERSION.$OS.$ARCH.tar.gz"
     curl -L "$URL" | tar xzv -C ~/bin
 
@@ -28,7 +28,7 @@ For example, if you have `$HOME/bin` on your `$PATH`,
 If you have Go installed, you can install `gitprompt` from source using the
 following command.
 
-    $ go get -u github.com/abhinav/gitprompt/cmd/gitprompt
+    $ go install github.com/abhinav/gitprompt/cmd/gitprompt@latest
 
 # Usage
 
