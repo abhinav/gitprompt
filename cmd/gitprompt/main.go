@@ -134,7 +134,7 @@ func run(args []string, stdout io.Writer) error {
 	if !noStatus {
 		s, err = gitStatus(ctx)
 	} else {
-		s, err = gitLog(ctx)
+		s, err = gitBranchName(ctx)
 	}
 	if err != nil {
 		return err
@@ -242,31 +242,32 @@ func gitStatus(ctx context.Context) (*Status, error) {
 	return &s, nil
 }
 
-func gitLog(ctx context.Context) (*Status, error) {
-	cmd := exec.CommandContext(ctx, "git", "log", "-1", `--format=%h%d`)
+func gitBranchName(ctx context.Context) (*Status, error) {
+	cmd := exec.CommandContext(ctx, "git", "rev-parse", "--abbrev-ref", "HEAD")
 	cmd.Stderr = os.Stderr
 	b, err := cmd.Output()
 	if err != nil {
-		return nil, fmt.Errorf("run git log: %v", err)
+		return nil, fmt.Errorf("run git rev-parse: %v", err)
 	}
 
-	out := strings.TrimSpace(string(b))
-	c, err := gitprompt.ReadCommit(out)
+	if out := strings.TrimSpace(string(b)); out != "HEAD" {
+		return &Status{
+			Branch:     out,
+			BranchOnly: true,
+		}, nil
+	}
+
+	cmd = exec.CommandContext(ctx, "git", "rev-parse", "--short", "HEAD")
+	cmd.Stderr = os.Stderr
+	b, err = cmd.Output()
 	if err != nil {
-		return nil, fmt.Errorf("read commit information from %q: %v", out, err)
+		return nil, fmt.Errorf("run git rev-parse: %v", err)
 	}
 
-	s := Status{BranchOnly: true}
-	switch {
-	case len(c.Branch) > 0:
-		s.Branch = c.Branch
-	case len(c.Tags) > 0:
-		s.Branch = "tags/" + c.Tags[0]
-	default:
-		s.Branch = c.ShortID
-	}
-
-	return &s, nil
+	return &Status{
+		Branch:     ":" + strings.TrimSpace(string(b)),
+		BranchOnly: true,
+	}, nil
 }
 
 // Status holds the information about the worktree necessary to build the

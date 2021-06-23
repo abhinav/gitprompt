@@ -1,6 +1,12 @@
 Releases
 ========
 
+v0.6.0 (unreleased)
+-------------------
+
+-   Make `gitprompt -no-git-status` faster by dropping reliance on `git log`.
+
+
 v0.5.0 (2020-04-30)
 -------------------
 
