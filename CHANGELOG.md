@@ -1,6 +1,12 @@
 Releases
 ========
 
+v0.7.0 (2021-08-16)
+-------------------
+
+-   Release pre-built binaries for more systems.
+
+
 v0.6.0 (2021-06-23)
 -------------------
 

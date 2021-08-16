@@ -31,11 +31,11 @@ archive and put the binaries somewhere on your `$PATH`.
 
 For example, if you have `$HOME/bin` on your `$PATH`,
 
-    OS=$(go env GOOS)
-    ARCH=$(go env GOARCH)
-    VERSION=v0.6.0
-    URL="https://github.com/abhinav/gitprompt/releases/download/$VERSION/gitprompt.$VERSION.$OS.$ARCH.tar.gz"
-    curl -L "$URL" | tar xzv -C ~/bin
+    OS=$(uname -s)
+    ARCH=$(uname -m)
+    VERSION=0.7.0
+    URL="https://github.com/abhinav/gitprompt/releases/download/v$VERSION/gitprompt_${VERSION}_${OS}_${ARCH}.tar.gz"
+    curl -L "$URL" | tar xzv -C ~/bin gitprompt
 
 ## Build From Source
 
