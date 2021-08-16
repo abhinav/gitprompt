@@ -3,8 +3,22 @@
 # Introduction
 
 `gitprompt` provides a prompt component for Zsh and Bash which contains
-information about a git repository. The behavior of `gitprompt` is inspired by
+information about a git repository.
+
+The behavior of `gitprompt` is inspired by
 [olivierverdier/zsh-git-prompt] and the [oh-my-zsh plugin] for it.
+
+Example outputs:
+
+- `(master|✔)`: branch `master` with a clean working tree, synced with upstream
+- `(feature|…1)`: branch `feature` with one untracked file
+- `(feature|✚1…1)`: branch `feature` with one unstaged changed file and one
+  untracked file
+- `(master|●1)`: branch `master` with one file staged to commit
+- `(main↓1|✔)`: branch `main`, one commit behind upstream
+- `(main↓2↑1|✔)`: branch `main`, two commits behind upstream and one commit ahead
+- `(tags/v0.6.0|✔)`: detached HEAD on a tag
+- `(:045f930|✔)`: detached HEAD, not on any branch or tag
 
 # Installation
 
