@@ -25,17 +25,21 @@ Example outputs:
 ## Binaries
 
 
-Pre-built ARM and 64-bit binaries are available for Linux and Mac at
-<https://github.com/abhinav/gitprompt/releases>. To install, simply unpack the
+Pre-build binaries for Linux, macOS, and Windows are available at
+<https://github.com/abhinav/restack/releases>. To install, simply unpack the
 archive and put the binaries somewhere on your `$PATH`.
 
 For example, if you have `$HOME/bin` on your `$PATH`,
 
     OS=$(uname -s)
     ARCH=$(uname -m)
-    VERSION=0.7.0
+    VERSION=0.8.0
     URL="https://github.com/abhinav/gitprompt/releases/download/v$VERSION/gitprompt_${VERSION}_${OS}_${ARCH}.tar.gz"
     curl -L "$URL" | tar xzv -C ~/bin gitprompt
+
+Alternatively, if you use Homebrew or Linuxbrew, run the following command.
+
+    brew install abhinav/tap/gitprompt
 
 ## Build From Source
 
