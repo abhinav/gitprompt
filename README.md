@@ -22,31 +22,41 @@ Example outputs:
 
 # Installation
 
-## Binaries
+To install gitprompt, use one of the following options:
 
+- If you're using **Homebrew** or Linuxbrew, run the following.
 
-Pre-build binaries for Linux, macOS, and Windows are available at
-<https://github.com/abhinav/restack/releases>. To install, simply unpack the
-archive and put the binaries somewhere on your `$PATH`.
+  ```
+  brew install abhinav/tap/gitprompt
+  ```
 
-For example, if you have `$HOME/bin` on your `$PATH`,
+- If you're using **ArchLinux**,
+  install it from [AUR](https://aur.archlinux.org/packages/gitprompt)
+  by running the following commands.
 
-    OS=$(uname -s)
-    ARCH=$(uname -m)
-    VERSION=0.8.0
-    URL="https://github.com/abhinav/gitprompt/releases/download/v$VERSION/gitprompt_${VERSION}_${OS}_${ARCH}.tar.gz"
-    curl -L "$URL" | tar xzv -C ~/bin gitprompt
+  ```
+  git clone https://aur.archlinux.org/gitprompt.git
+  cd gitprompt
+  makepkg -si
+  ```
 
-Alternatively, if you use Homebrew or Linuxbrew, run the following command.
+  Or with an AUR helper like [yay](https://github.com/Jguer/yay),
+  run the following command.
 
-    brew install abhinav/tap/gitprompt
+  ```
+  yay -S gitprompt
+  ```
 
-## Build From Source
+- Download a **pre-built binary** from the
+  [Releases page](https://github.com/abhinav/gitprompt/releases)
+  and place it on your `$PATH`.
 
-If you have Go installed, you can install `gitprompt` from source using the
-following command.
+- If you have Go installed,
+  **build from source** with the following command.
 
-    $ go install github.com/abhinav/gitprompt/cmd/gitprompt@latest
+  ```
+  go install github.com/abhinav/gitprompt/cmd/gitprompt@latest
+  ```
 
 # Usage
 
