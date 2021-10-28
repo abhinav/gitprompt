@@ -1,6 +1,12 @@
 Releases
 ========
 
+v0.8.1 (2021-10-28)
+-------------------
+
+-   Update Homebrew bottle formula to conform to new format.
+
+
 v0.8.0 (2021-09-13)
 -------------------
 
