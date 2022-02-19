@@ -16,7 +16,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v1
       with:
-        go-version: 1.16.x
+        go-version: 1.17.x
 
     - name: Checkout code
       uses: actions/checkout@v2
@@ -84,6 +84,7 @@ jobs:
         version: latest
         args: release --rm-dist --release-notes changes.${{ env.VERSION }}.txt
       env:
+        AUR_KEY: ${{ secrets.AUR_KEY }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GORELEASER_CURRENT_TAG: ${{ env.VERSION }}
         HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}

@@ -2,10 +2,21 @@ builds:
   - main: ./cmd/gitprompt
     env:
       - CGO_ENABLED=0
+    goarch:
+      - 386
+      - amd64
+      - arm
+      - arm64
     goos:
       - linux
       - windows
       - darwin
+    goarm: [5, 6, 7]
+    ignore:
+      - goos: windows
+        goarch: arm
+      - goos: darwin
+        goarch: arm
 
 archives:
   - replacements:
@@ -23,13 +34,30 @@ brews:
     commit_msg_template: "{{ .ProjectName }}: Update formula to {{ .Tag }}"
     commit_author:
       name: Abhinav Gupta
-      email: 41730+abhinav@users.noreply.github.com
+      email: mail@abhinavg.net
     homepage: https://github.com/abhinav/gitprompt
-    description: " Informative git prompt for zsh and bash"
+    description: "Informative git prompt for zsh and bash"
     license: "MIT"
     skip_upload: auto
     dependencies:
       - name: git
+
+aurs:
+  - name: gitprompt-bin
+    homepage: https://github.com/abhinav/gitprompt
+    description: "Informative git prompt for zsh and bash"
+    maintainers:
+      - 'Abhinav Gupta <mail@abhinavg.net>'
+    license: "MIT"
+    git_url: "ssh://aur@aur.archlinux.org/gitprompt-bin.git"
+    skip_upload: auto
+    private_key: '{{ .Env.AUR_KEY }}'
+    package: |-
+      install -Dm755 "./gitprompt" "${pkgdir}/usr/bin/gitprompt"
+      install -Dm755 "./LICENSE" "${pkgdir}/usr/share/licenses/gitprompt/LICENSE"
+    commit_author:
+      name: Abhinav Gupta
+      email: mail@abhinavg.net
 
 checksum:
   name_template: 'checksums.txt'

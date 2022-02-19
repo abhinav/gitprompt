@@ -30,21 +30,28 @@ To install gitprompt, use one of the following options:
   brew install abhinav/tap/gitprompt
   ```
 
-- If you're using **ArchLinux**,
-  install it from [AUR](https://aur.archlinux.org/packages/gitprompt)
-  by running the following commands.
+- If you're using **ArchLinux**, you install it from AUR.
+  Use the [gitprompt package](https://aur.archlinux.org/packages/gitprompt) to build it from source,
+  or the [gitprompt-bin package](https://aur.archlinux.org/packages/gitprompt-bin) package for a pre-built binary.
 
   ```
   git clone https://aur.archlinux.org/gitprompt.git
   cd gitprompt
   makepkg -si
+  
+  # or
+  
+  git clone https://aur.archlinux.org/gitprompt-bin.git
+  cd gitprompt-bin
+  makepkg -si
   ```
 
-  Or with an AUR helper like [yay](https://github.com/Jguer/yay),
-  run the following command.
+  If you use an AUR helper like [yay](https://github.com/Jguer/yay),
+  run the following commands instead.
 
   ```
-  yay -S gitprompt
+  yay -S gitprompt     # or
+  yay -S gitprompt-bin
   ```
 
 - Download a **pre-built binary** from the
