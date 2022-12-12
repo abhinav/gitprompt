@@ -1,3 +1,12 @@
+This project has been archived.
+Feel free to continue using the published binaries or fork it.
+
+See [#13](https://github.com/abhinav/gitprompt/issues/13)
+for instructions on how to get similar (but not the same)
+output with [starship](https://starship.rs/).
+
+----
+
 [![Build Status](https://travis-ci.org/abhinav/gitprompt.svg?branch=master)](https://travis-ci.org/abhinav/gitprompt)
 
 # Introduction
